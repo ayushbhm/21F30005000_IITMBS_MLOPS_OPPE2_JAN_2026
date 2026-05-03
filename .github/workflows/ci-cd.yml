@@ -2,13 +2,15 @@ name: CI/CD - Heart Disease API
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
 
 env:
   PROJECT_ID: project-5e847658-f172-4998-bd0
   GKE_CLUSTER: heart-disease-cluster
   GKE_ZONE: us-central1-a
   IMAGE: gcr.io/project-5e847658-f172-4998-bd0/heart-disease-api
+  WIF_PROVIDER: projects/262041725178/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  WIF_SA: github-actions-sa@project-5e847658-f172-4998-bd0.iam.gserviceaccount.com
 
 jobs:
   ci-cd:
@@ -23,7 +25,8 @@ jobs:
     - id: auth
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SA }}
 
     - uses: google-github-actions/setup-gcloud@v2
 

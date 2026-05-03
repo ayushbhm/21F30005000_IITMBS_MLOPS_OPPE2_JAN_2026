@@ -1,8 +1,11 @@
-import os, json, logging, pickle, pandas as pd
+import os, sys, json, logging, pickle, pandas as pd
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+logging.getLogger().addHandler(handler)
+logging.getLogger().setLevel(logging.INFO)
 
 with open('model.pkl', 'rb') as f:
     model = pickle.load(f)
@@ -22,7 +25,9 @@ def predict():
     df = df[FEATURES]
     pred = int(model.predict(df)[0])
     prob = float(model.predict_proba(df)[0][pred])
-    logging.info(json.dumps({"input": data, "prediction": pred, "probability": prob}))
+    log_entry = {"input": data, "prediction": pred, "probability": prob}
+    print(json.dumps(log_entry), flush=True)
+    logging.info(json.dumps(log_entry))
     return jsonify({"prediction": pred, "probability": prob})
 
 if __name__ == '__main__':

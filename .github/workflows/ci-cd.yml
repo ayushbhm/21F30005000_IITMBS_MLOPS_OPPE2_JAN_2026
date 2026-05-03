@@ -8,7 +8,7 @@ env:
   PROJECT_ID: project-5e847658-f172-4998-bd0
   GKE_CLUSTER: heart-disease-cluster
   GKE_ZONE: us-central1-a
-  IMAGE: gcr.io/project-5e847658-f172-4998-bd0/heart-disease-api
+  IMAGE: us-central1-docker.pkg.dev/project-5e847658-f172-4998-bd0/heart-disease-api/heart-disease-api
   WIF_PROVIDER: projects/262041725178/locations/global/workloadIdentityPools/github-pool/providers/github-provider
   WIF_SA: github-actions-sa@project-5e847658-f172-4998-bd0.iam.gserviceaccount.com
 
@@ -31,7 +31,7 @@ jobs:
     - uses: google-github-actions/setup-gcloud@v2
 
     - name: Configure Docker
-      run: gcloud auth configure-docker --quiet
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
     - name: Build & Push
       run: |

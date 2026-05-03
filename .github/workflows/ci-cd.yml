@@ -1,0 +1,46 @@
+name: CI/CD - Heart Disease API
+
+on:
+  push:
+    branches: [main]
+
+env:
+  PROJECT_ID: project-5e847658-f172-4998-bd0
+  GKE_CLUSTER: heart-disease-cluster
+  GKE_ZONE: us-central1-a
+  IMAGE: gcr.io/project-5e847658-f172-4998-bd0/heart-disease-api
+
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: gcloud auth configure-docker --quiet
+
+    - name: Build & Push
+      run: |
+        docker build -t $IMAGE:$GITHUB_SHA -t $IMAGE:latest ./app
+        docker push $IMAGE:$GITHUB_SHA
+        docker push $IMAGE:latest
+
+    - name: Get GKE credentials
+      run: gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
+
+    - name: Deploy to GKE
+      run: |
+        sed -i "s|:latest|:$GITHUB_SHA|g" k8s/deployment.yaml
+        kubectl apply -f k8s/deployment.yaml
+        kubectl rollout status deployment/heart-disease-api
